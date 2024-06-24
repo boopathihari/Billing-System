@@ -11,8 +11,6 @@ public class Coupon {
     public static void ApplyCoupon(int BillID) {
         Scanner sc = new Scanner(System.in);
 
-        Product product = new Product();
-
         System.out.print("\nEnter the Coupon Code:");
         String code = sc.next();
         LocalDate todayDate = LocalDate.now();
@@ -22,16 +20,20 @@ public class Coupon {
 
         if (discountPercent != -1) {
             updateCoupon(code);
-            System.out.println("Coupon Applied Successfully");
+            System.out.println("\nCoupon Applied Successfully!!!!!");
 
-            double totalAmount = product.getTotalAmount(BillID);
+            double totalAmount = Product.getTotalAmount(BillID);
             double reducedAmount = totalAmount - totalAmount * (discountPercent / 100);
 
             System.out.println("========================================================");
             System.out.println("Total Amount after coupon applied: " + reducedAmount);
             System.out.println("========================================================");
 
-            product.updateTotalAmount(reducedAmount, BillID);
+            Product.updateTotalAmount(reducedAmount, BillID);
+            
+            int couponID = getCouponID(code);
+            BillGenerator.addCoupon(BillID,couponID);
+
 
         } else {
             System.out.println("Coupon Not Valid");
@@ -71,5 +73,26 @@ public class Coupon {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    public static int getCouponID(String code){
+        int couponID=-1;
+
+        try (Connection conn = Server.DBConnection.getConnection()) {
+            String sql = "SELECT coupon_id from coupons where code=?";
+            PreparedStatement preparedStatement = conn.prepareStatement(sql);
+            preparedStatement.setString(1, code);
+
+            ResultSet rs = preparedStatement.executeQuery();
+
+            if (rs.next()) {
+                couponID = rs.getInt("coupon_id");
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return couponID;
     }
 }

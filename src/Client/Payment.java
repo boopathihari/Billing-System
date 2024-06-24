@@ -8,35 +8,37 @@ import java.util.*;
 public class Payment {
     static Scanner sc= new Scanner(System.in);
 
-    public static void PaymentGateway(int BillID){
+    public static boolean PaymentGateway(int BillID,ArrayList<Integer> PurchaseProductID,ArrayList<Integer> PurchaseQuantity,ArrayList<Integer> oldQuantity){
+       boolean isSuccess = false;
         System.out.println("Enter the Payment Mode");
         System.out.println("1.Cash");
         System.out.println("2.UPI");
-        System.out.println("3.Credit Card");
-        
+        System.out.println("3.Card");
+
         int option =  sc.nextInt();
 
         switch (option) {
             case 1:
-                Payment("Cash",BillID);
+                isSuccess = Payment("Cash",BillID,PurchaseProductID,PurchaseQuantity,oldQuantity,isSuccess);
                 break;
         
             case 2:
-                Payment("UPI",BillID);
+              isSuccess = Payment("UPI",BillID,PurchaseProductID,PurchaseQuantity,oldQuantity,isSuccess);
                 break;
         
             case 3:
-                Payment("Credit Card",BillID);
+             isSuccess = Payment("Card",BillID,PurchaseProductID,PurchaseQuantity,oldQuantity,isSuccess);
                 break;
-        
+
             default:
                 System.out.println("Please enter the valid payment mode");
                 break;
         }
 
+        return isSuccess;
     }
 
-    public static void Payment(String Mode,int BillID) {
+    public static boolean Payment(String Mode,int BillID,ArrayList<Integer> PurchaseProductID,ArrayList<Integer> PurchaseQuantity,ArrayList<Integer> oldQuantity,boolean isSuccess) {
         Product product = new Product();
 
         double totalAmount = product.getTotalAmount(BillID);
@@ -48,11 +50,17 @@ public class Payment {
             
             if(status.equals("Y")){
                 System.out.println("Payment through the "+Mode+" is sucessfully Done");
+                for (int i=0 ; i<PurchaseProductID.size(); i++) {
+                    BillGenerator.updateProductQuantity(PurchaseProductID.get(i),PurchaseQuantity.get(i),oldQuantity.get(i));
+                }
                 InsertPaymentDetails("Success",BillID,totalAmount,Mode);
+                isSuccess = true;
             }else{
                 System.out.println("Payment through the "+Mode+" is failed");
                 InsertPaymentDetails("Failed",BillID,totalAmount,Mode);
             }
+
+            return isSuccess;
 
     }
 

@@ -6,17 +6,15 @@ public class Main {
     public static void main(String[] args) {
         Scanner sc = new Scanner(System.in);
         
-        BillGenerator billGeneretor = new BillGenerator();
-        Report report = new Report();
         Product product = new Product();
 
         while (true) {
             System.out.println("\n===============Billing System Application==============\n");
             System.out.println("1.Generate Bill");
             System.out.println("2.Generate Report");
-            System.out.println("3.Add Products");
-            System.out.println("4.Exit");
+            System.out.println("3.Exit");
 
+            System.out.print("\nEnter your choice:");
             int option = sc.nextInt();
 
             switch (option) {
@@ -29,18 +27,13 @@ public class Main {
                         System.out.println(l);
                     }
                 System.out.println("==========================================================");
-                    billGeneretor.generateBill();
-                    
+                    BillGenerator.generateBill();
                     break;
                 case 2: 
                 System.out.println("============Generate Report====================\n");
-                    // report.generateReport();    
+                    Report.generateReport();    
                     break;
-                case 3: 
-                    System.out.println("============Add Product====================\n");
-                    // product.addProduct();
-                    break;
-                case 4:
+                case 3:
                     System.out.println("Exiting...");
                     System.exit(0);
                 default:

@@ -1,5 +1,6 @@
 package Client;
 
+import java.util.ArrayList;
 import java.util.Scanner;
 
 
@@ -46,4 +47,35 @@ public class Customer {
 
         return -1;
     }
+
+
+    public static ArrayList<String> getCustomerDetails(int BillID){
+        ArrayList<String> list = new ArrayList<>();
+        try (Connection conn = Server.DBConnection.getConnection()) {
+            String sql = "SELECT c.customer_id,c.name,c.phone,b.bill_date from customers c join bills b on c.customer_id = b.customer_id where b.Bill_id = ?";
+            PreparedStatement preparedStatement = conn.prepareStatement(sql);
+            preparedStatement.setInt(1, BillID);
+            preparedStatement.executeQuery();
+            ResultSet rs = preparedStatement.getResultSet();
+
+            if(rs.next()){
+                int id = rs.getInt(1);
+                String name = rs.getString(2);
+                String phone = rs.getString(3);
+                Date date = rs.getDate(4);
+
+
+                list.add(String.valueOf(id));
+                list.add(String.valueOf(name));
+                list.add(String.valueOf(phone));
+                list.add(String.valueOf(date));
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return list;
+    }
+
 }
