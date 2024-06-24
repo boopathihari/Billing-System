@@ -78,18 +78,28 @@ public class BillGenerator {
             Coupon.ApplyCoupon(BillID);
         }
 
+
+        // Logic for Adding GST
+        double totalAmountWithGST = Product.getTotalAmount(BillID);
+        // Added GST => CGST , SGST 2.5% and 2.5%
+        totalAmountWithGST += totalAmountWithGST * (5.00/100);
+        Product.updateTotalAmount(totalAmountWithGST, BillID);
+
+
         System.out.println("\n\n===============Payment==================");
 
         boolean isSuccess = Payment.PaymentGateway(BillID,PurchaseProductID,PurchaseQuantity,oldQuantity);
 
 
         if (isSuccess == true && CouponOption.equals("Y")) {
-            System.out.println("\n=================Bill Details================");
+            System.out.println("\n===============================INVOICE DETAILS==================================");
             DisplayBill(BillID,TotalAmount);
         }else if(isSuccess == true && CouponOption.equals("N")){
             System.out.println("\n=================Bill Details================");
             DisplayBillNoCoupon(BillID,TotalAmount);
         }
+        System.out.println("\n====================================================================================");
+
     }
 
     
@@ -166,19 +176,18 @@ public class BillGenerator {
 
 
     public static void DisplayBill(int BillID, double TotalAmount){
-        System.out.println("-------------------------");
-        System.out.println("Customer Information:");
-        System.out.println("-------------------------");
+        // System.out.println("-------------------------");
+        // System.out.println("Customer Information:");
+        // System.out.println("-------------------------");
 
         ArrayList<String> cusDetails= Customer.getCustomerDetails(BillID);
 
+        System.out.println("-------------------------------------------------------------------------------------");
         System.out.println("Customer ID: "+cusDetails.get(0));
         System.out.println("Name: "+cusDetails.get(1));
         System.out.println("Contact Number: "+cusDetails.get(2));
+        System.out.println("-------------------------------------------------------------------------------------");
 
-        System.out.println("\n-------------------------");
-        System.out.println("Bill Information:");
-        System.out.println("-------------------------");
 
         ArrayList<String> billDetails = getBillDetails(BillID);
 
@@ -186,6 +195,7 @@ public class BillGenerator {
         double discountPercent = Double.parseDouble(billDetails.get(4));
         double couponDiscount = TotalAmount*discountPercent/100;
 
+        System.out.println("-------------------------------------------------------------------------------------");
         System.out.println("Bill ID: "+billDetails.get(0));
         System.out.println("Bill Date: "+billDetails.get(1));
         System.out.println("Total Amount (Before Discount and Coupon): $"+TotalAmount);
@@ -193,12 +203,13 @@ public class BillGenerator {
         System.out.println("Coupon Discount Percentage: "+billDetails.get(4)+"%");
         System.out.println("Coupon Discount Amount: $"+couponDiscount);
         System.out.println("Additional Discount: 0");
+        System.out.println("-------------------------------------------------------------------------------------");
+
 
        
 
         ArrayList<String> productsDetails = Product.getBillProduct(BillID);
 
-        System.out.println("\n\n=========Invoice=============");
         System.out.println("-------------------------------------------------------------------------------------");
         System.out.println("| Product ID | Product Name | Quantity | Price per Quantity | Total Price |" );
         for (String details : productsDetails) {
@@ -207,38 +218,34 @@ public class BillGenerator {
         System.out.println("-------------------------------------------------------------------------------------");
 
         System.out.println("\n========================================================================================");
-        System.out.println("\t\t\tTotal Amount Payed (After Discount and Coupon): "+billDetails.get(2));
+        System.out.println("\t\t\tGrand Total with added GST:\t $"+billDetails.get(2));
         System.out.println("=========================================================================================\n\n");
         System.out.println("\nThank you for your Purchase!");
     }
 
 
     public static void DisplayBillNoCoupon(int BillID, double TotalAmount){
-        System.out.println("-------------------------");
-        System.out.println("Customer Information:");
-        System.out.println("-------------------------");
+   
 
         ArrayList<String> cusDetails= Customer.getCustomerDetails(BillID);
 
+        System.out.println("-------------------------------------------------------------------------------------");
         System.out.println("Customer ID: "+cusDetails.get(0));
         System.out.println("Name: "+cusDetails.get(1));
         System.out.println("Contact Number: "+cusDetails.get(2));
-
-        System.out.println("\n-------------------------");
-        System.out.println("Bill Information:");
-        System.out.println("-------------------------");
+        System.out.println("-------------------------------------------------------------------------------------");
 
         ArrayList<String> billDetails = getBillDetailsNoCoupon(BillID);
        
-
+        System.out.println("-------------------------------------------------------------------------------------");
         System.out.println("Bill ID: "+billDetails.get(0));
         System.out.println("Bill Date: "+billDetails.get(1));
         System.out.println("Additional Discount: 0");
+        System.out.println("-------------------------------------------------------------------------------------");
 
 
         ArrayList<String> productsDetails = Product.getBillProduct(BillID);
 
-        System.out.println("\n\n=========Invoice=============");
         System.out.println("-------------------------------------------------------------------------------------");
         System.out.println("| Product ID | Product Name | Quantity | Price per Quantity | Total Price |" );
         for (String details : productsDetails) {
@@ -247,7 +254,7 @@ public class BillGenerator {
         System.out.println("-------------------------------------------------------------------------------------");
 
         System.out.println("\n========================================================================================");
-        System.out.println("\t\t\tTotal Amount Payed : "+billDetails.get(2));
+        System.out.println("\t\t\tGrand Total with added GST:\t $"+billDetails.get(2));
         System.out.println("=========================================================================================\n\n");
         System.out.println("\nThank you for your Purchase!");
     }

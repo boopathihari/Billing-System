@@ -29,6 +29,8 @@ public class Coupon {
             System.out.println("Total Amount after coupon applied: " + reducedAmount);
             System.out.println("========================================================");
 
+            
+
             Product.updateTotalAmount(reducedAmount, BillID);
             
             int couponID = getCouponID(code);
