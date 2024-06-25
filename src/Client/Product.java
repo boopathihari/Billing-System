@@ -104,8 +104,7 @@ public class Product {
                 double price = rs.getDouble(4);
                 double totalPrice = price * quantity;
 
-                list.add("| " + id + "\t    | " + name + "\t    | " + quantity + "\t       | " + price
-                        + "\t          | " + totalPrice + "\t    | ");
+                list.add(id+","+name+","+quantity +","+ price+","+totalPrice );
             }
         } catch (Exception e) {
             e.printStackTrace();

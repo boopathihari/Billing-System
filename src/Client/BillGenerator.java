@@ -13,8 +13,8 @@ public class BillGenerator {
         int BillID = addBill(CustomerID);
         double TotalAmount = 0;
         ArrayList<Integer> PurchaseProductID = new ArrayList<>();
-        ArrayList<Integer> PurchaseQuantity = new ArrayList<>(); 
-        ArrayList<Integer> oldQuantity = new ArrayList<>(); 
+        ArrayList<Integer> PurchaseQuantity = new ArrayList<>();
+        ArrayList<Integer> oldQuantity = new ArrayList<>();
 
         System.out.println("=========Add Products==========");
         while (true) {
@@ -38,20 +38,19 @@ public class BillGenerator {
             System.out.println("Price: " + productPrice);
             System.out.println("Total quantity available: " + proQuantity);
 
-            System.out.print("\nEnter the Quantity: ");
+            System.out.print("\nEnter the Quantity to sell: ");
             int quantity = sc.nextInt();
 
             if (quantity > Integer.parseInt(proQuantity) || proQuantity.equals("0")) {
                 System.out.println("!!!!!Entered quantity is out of stack");
-                System.out.print("\nDo you want add more Product(Y/N):");
+                System.out.print("Do you want add more Product(Y/N):");
                 String s = sc.next();
 
-            if (s.charAt(0) == 'N') {
-                break;
-            }
+                if (s.charAt(0) == 'N') {
+                    break;
+                }
                 continue;
             }
-
 
             addProductToBill(BillID, ProductID, quantity, Double.parseDouble(productPrice));
             PurchaseProductID.add(ProductID);
@@ -69,40 +68,38 @@ public class BillGenerator {
 
         }
 
-        updateBill(BillID,TotalAmount);
+        updateBill(BillID, TotalAmount);
 
         System.out.print("\nEnter Y/N for coupon:");
         String CouponOption = sc.next();
-        
-        if(CouponOption.equals("Y")){
-            Coupon.ApplyCoupon(BillID);
+
+        boolean isValidCoupon = false;
+        if (CouponOption.equals("Y")) {
+            isValidCoupon = Coupon.ApplyCoupon(BillID);
         }
 
+        System.out.println("Valid coupon or not" + isValidCoupon);
 
         // Logic for Adding GST
         double totalAmountWithGST = Product.getTotalAmount(BillID);
         // Added GST => CGST , SGST 2.5% and 2.5%
-        totalAmountWithGST += totalAmountWithGST * (5.00/100);
+        totalAmountWithGST += totalAmountWithGST * (5.00 / 100);
         Product.updateTotalAmount(totalAmountWithGST, BillID);
-
 
         System.out.println("\n\n===============Payment==================");
 
-        boolean isSuccess = Payment.PaymentGateway(BillID,PurchaseProductID,PurchaseQuantity,oldQuantity);
+        boolean isSuccess = Payment.PaymentGateway(BillID, PurchaseProductID, PurchaseQuantity, oldQuantity);
 
-
-        if (isSuccess == true && CouponOption.equals("Y")) {
+        if (isSuccess == true && CouponOption.equals("Y") && isValidCoupon == true) {
             System.out.println("\n===============================INVOICE DETAILS==================================");
-            DisplayBill(BillID,TotalAmount);
-        }else if(isSuccess == true && CouponOption.equals("N")){
+            DisplayBill(BillID, TotalAmount);
+        } else if (isSuccess == true && isValidCoupon == false) {
             System.out.println("\n=================Bill Details================");
-            DisplayBillNoCoupon(BillID,TotalAmount);
+            DisplayBillNoCoupon(BillID, TotalAmount);
         }
         System.out.println("\n====================================================================================");
 
     }
-
-    
 
     public static int addBill(int customerID) {
         try (Connection conn = Server.DBConnection.getConnection()) {
@@ -137,11 +134,11 @@ public class BillGenerator {
         }
     }
 
-    public static void updateProductQuantity(int ProductID, int quantity,int oldQuantity){
+    public static void updateProductQuantity(int ProductID, int quantity, int oldQuantity) {
         try (Connection conn = Server.DBConnection.getConnection()) {
             String sql = "UPDATE products SET stock_quantity=? where product_id=?";
             PreparedStatement preparedStatement = conn.prepareStatement(sql, PreparedStatement.RETURN_GENERATED_KEYS);
-            preparedStatement.setInt(1, oldQuantity-quantity);
+            preparedStatement.setInt(1, oldQuantity - quantity);
             preparedStatement.setInt(2, ProductID);
             preparedStatement.executeUpdate();
 
@@ -150,7 +147,7 @@ public class BillGenerator {
         }
     }
 
-    public static void updateBill(int BillID, double TotalAmount){
+    public static void updateBill(int BillID, double TotalAmount) {
         try (Connection conn = Server.DBConnection.getConnection()) {
             String sql = "UPDATE bills SET total_amount=? where Bill_id = ?";
             PreparedStatement preparedStatement = conn.prepareStatement(sql, PreparedStatement.RETURN_GENERATED_KEYS);
@@ -162,7 +159,7 @@ public class BillGenerator {
         }
     }
 
-    public static void addCoupon(int BillID,int couponID){
+    public static void addCoupon(int BillID, int couponID) {
         try (Connection conn = Server.DBConnection.getConnection()) {
             String sql = "UPDATE bills SET couponID=? where Bill_id = ?";
             PreparedStatement preparedStatement = conn.prepareStatement(sql, PreparedStatement.RETURN_GENERATED_KEYS);
@@ -174,93 +171,96 @@ public class BillGenerator {
         }
     }
 
-
-    public static void DisplayBill(int BillID, double TotalAmount){
+    public static void DisplayBill(int BillID, double TotalAmount) {
         // System.out.println("-------------------------");
         // System.out.println("Customer Information:");
         // System.out.println("-------------------------");
 
-        ArrayList<String> cusDetails= Customer.getCustomerDetails(BillID);
+        ArrayList<String> cusDetails = Customer.getCustomerDetails(BillID);
 
         System.out.println("-------------------------------------------------------------------------------------");
-        System.out.println("Customer ID: "+cusDetails.get(0));
-        System.out.println("Name: "+cusDetails.get(1));
-        System.out.println("Contact Number: "+cusDetails.get(2));
+        System.out.println("Customer ID: " + cusDetails.get(0));
+        System.out.println("Name: " + cusDetails.get(1));
+        System.out.println("Contact Number: " + cusDetails.get(2));
         System.out.println("-------------------------------------------------------------------------------------");
-
 
         ArrayList<String> billDetails = getBillDetails(BillID);
 
-        
         double discountPercent = Double.parseDouble(billDetails.get(4));
-        double couponDiscount = TotalAmount*discountPercent/100;
+        double couponDiscount = TotalAmount * discountPercent / 100;
 
         System.out.println("-------------------------------------------------------------------------------------");
-        System.out.println("Bill ID: "+billDetails.get(0));
-        System.out.println("Bill Date: "+billDetails.get(1));
-        System.out.println("Total Amount (Before Discount and Coupon): $"+TotalAmount);
-        System.out.println("Coupon Code: "+billDetails.get(3));
-        System.out.println("Coupon Discount Percentage: "+billDetails.get(4)+"%");
-        System.out.println("Coupon Discount Amount: $"+couponDiscount);
+        System.out.println("Bill ID: " + billDetails.get(0));
+        System.out.println("Bill Date: " + billDetails.get(1));
+        System.out.println("Total Amount (Before Discount and Coupon): $" + TotalAmount);
+        System.out.println("Coupon Code: " + billDetails.get(3));
+        System.out.println("Coupon Discount Percentage: " + billDetails.get(4) + "%");
+        System.out.println("Coupon Discount Amount: $" + couponDiscount);
         System.out.println("Additional Discount: 0");
         System.out.println("-------------------------------------------------------------------------------------");
-
-
-       
 
         ArrayList<String> productsDetails = Product.getBillProduct(BillID);
 
         System.out.println("-------------------------------------------------------------------------------------");
-        System.out.println("| Product ID | Product Name | Quantity | Price per Quantity | Total Price |" );
+        System.out.printf("| %-10s | %-30s | %-8s | %-18s | %-10s |\n", "Product ID", "Product Name", "Quantity",
+                "Price per Quantity", "Total Price");
         for (String details : productsDetails) {
-            System.out.println(details);
+            String[] item = details.split(",");
+
+            System.out.printf("| %-10s | %-30s | %-8s | %-18s | $%-10s |\n", item[0], item[1], item[2], item[3],
+                    item[4]);
+
         }
         System.out.println("-------------------------------------------------------------------------------------");
 
-        System.out.println("\n========================================================================================");
-        System.out.println("\t\t\tGrand Total with added GST:\t $"+billDetails.get(2));
-        System.out.println("=========================================================================================\n\n");
+        System.out
+                .println("\n========================================================================================");
+        System.out.println("\t\t\tGrand Total with added GST:\t $" + billDetails.get(2));
+        System.out.println(
+                "=========================================================================================\n\n");
         System.out.println("\nThank you for your Purchase!");
     }
 
+    public static void DisplayBillNoCoupon(int BillID, double TotalAmount) {
 
-    public static void DisplayBillNoCoupon(int BillID, double TotalAmount){
-   
-
-        ArrayList<String> cusDetails= Customer.getCustomerDetails(BillID);
+        ArrayList<String> cusDetails = Customer.getCustomerDetails(BillID);
 
         System.out.println("-------------------------------------------------------------------------------------");
-        System.out.println("Customer ID: "+cusDetails.get(0));
-        System.out.println("Name: "+cusDetails.get(1));
-        System.out.println("Contact Number: "+cusDetails.get(2));
+        System.out.println("Customer ID: " + cusDetails.get(0));
+        System.out.println("Name: " + cusDetails.get(1));
+        System.out.println("Contact Number: " + cusDetails.get(2));
         System.out.println("-------------------------------------------------------------------------------------");
 
         ArrayList<String> billDetails = getBillDetailsNoCoupon(BillID);
-       
+
         System.out.println("-------------------------------------------------------------------------------------");
-        System.out.println("Bill ID: "+billDetails.get(0));
-        System.out.println("Bill Date: "+billDetails.get(1));
+        System.out.println("Bill ID: " + billDetails.get(0));
+        System.out.println("Bill Date: " + billDetails.get(1));
         System.out.println("Additional Discount: 0");
         System.out.println("-------------------------------------------------------------------------------------");
-
 
         ArrayList<String> productsDetails = Product.getBillProduct(BillID);
 
         System.out.println("-------------------------------------------------------------------------------------");
-        System.out.println("| Product ID | Product Name | Quantity | Price per Quantity | Total Price |" );
+        System.out.printf("| %-10s | %-30s | %-8s | %-18s | %-10s |\n", "Product ID", "Product Name", "Quantity",
+                "Price per Quantity", "Total Price");
         for (String details : productsDetails) {
-            System.out.println(details);
+            String[] item = details.split(",");
+
+            System.out.printf("| %-10s | %-30s | %-8s | %-18s | $%-10s |\n", item[0], item[1], item[2], item[3],
+                    item[4]);
         }
         System.out.println("-------------------------------------------------------------------------------------");
 
-        System.out.println("\n========================================================================================");
-        System.out.println("\t\t\tGrand Total with added GST:\t $"+billDetails.get(2));
-        System.out.println("=========================================================================================\n\n");
+        System.out
+                .println("\n========================================================================================");
+        System.out.println("\t\t\tGrand Total with added GST:\t $" + billDetails.get(2));
+        System.out.println(
+                "=========================================================================================\n\n");
         System.out.println("\nThank you for your Purchase!");
     }
 
-    
-    public static ArrayList<String> getBillDetailsNoCoupon(int BillID){
+    public static ArrayList<String> getBillDetailsNoCoupon(int BillID) {
         ArrayList<String> list = new ArrayList<>();
         try (Connection conn = Server.DBConnection.getConnection()) {
             String sql = "SELECT b.Bill_id,b.bill_date,b.total_amount from bills b where b.Bill_id=?";
@@ -269,8 +269,7 @@ public class BillGenerator {
             preparedStatement.executeQuery();
             ResultSet rs = preparedStatement.getResultSet();
 
-
-            if(rs.next()){
+            if (rs.next()) {
                 int BillId = rs.getInt(1);
                 Date BillDate = rs.getDate(2);
                 Double Amount = rs.getDouble(3);
@@ -280,18 +279,16 @@ public class BillGenerator {
                 list.add(String.valueOf(Amount));
 
             }
-            
+
         } catch (Exception e) {
             e.printStackTrace();
         }
 
         return list;
-        
-    }
-    
-   
 
-    public static ArrayList<String> getBillDetails(int BillID){
+    }
+
+    public static ArrayList<String> getBillDetails(int BillID) {
         ArrayList<String> list = new ArrayList<>();
         try (Connection conn = Server.DBConnection.getConnection()) {
             String sql = "SELECT b.Bill_id,b.bill_date,b.total_amount,c.code,c.discount_percentage from bills b join coupons c on c.coupon_id = b.couponID where b.Bill_id=?";
@@ -300,14 +297,12 @@ public class BillGenerator {
             preparedStatement.executeQuery();
             ResultSet rs = preparedStatement.getResultSet();
 
-
-            if(rs.next()){
+            if (rs.next()) {
                 int BillId = rs.getInt(1);
                 Date BillDate = rs.getDate(2);
                 double totalAmount = rs.getDouble(3);
                 String code = rs.getString(4);
                 String discountPercent = rs.getString(5);
-
 
                 list.add(String.valueOf(BillId));
                 list.add(String.valueOf(BillDate));
@@ -316,16 +311,14 @@ public class BillGenerator {
                 list.add(String.valueOf(discountPercent));
 
             }
-            
+
         } catch (Exception e) {
             e.printStackTrace();
         }
 
         return list;
-        
+
     }
-
-
 
     public static int getBillID(int customerID) {
         try (Connection conn = Server.DBConnection.getConnection()) {

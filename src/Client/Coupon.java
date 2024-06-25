@@ -8,7 +8,9 @@ import java.time.LocalDate;
 import java.sql.Date;
 
 public class Coupon {
-    public static void ApplyCoupon(int BillID) {
+    public static boolean ApplyCoupon(int BillID) {
+        boolean isValidCoupon=true;
+
         Scanner sc = new Scanner(System.in);
 
         System.out.print("\nEnter the Coupon Code:");
@@ -39,8 +41,10 @@ public class Coupon {
 
         } else {
             System.out.println("Coupon Not Valid");
+            isValidCoupon=false;
         }
 
+        return isValidCoupon;
     }
 
     public static double validCoupon(Date todayDate, String code) {
